@@ -5,7 +5,7 @@ from types import ModuleType
 
 import pumlpy.interface as interface
 import pumlpy.impl.base as base
-    
+
 
 class UMLPackageInspector(interface.UMLPackage):
 

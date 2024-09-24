@@ -1,0 +1,452 @@
+@startuml	pumlpy
+
+Interface pumlpy.interface.UMLExtractor {
+	+ builtins.int: max_depth
+	+ pumlpy.interface.UMLSpace: space
+	+ builtins.bool: include_extern
+	+ ~T: extract(obj: builtins.object, domain: builtins.str, fqn: builtins.str, next_layer: builtins.bool)
+	+ builtins.NoneType: return: refresh()
+}
+Interface pumlpy.interface.UMLSpace {
+	+ builtins.str: name
+	+ builtins.str: template
+	+ dict[str, pumlpy.interface.UMLSpaceItem]
+	+ list[pumlpy.interface.UMLRelation]
+	+ builtins.NoneType: return: add_item(item: pumlpy.interface.UMLSpaceItem)
+	+ builtins.NoneType: return: add_relation(relation: pumlpy.interface.UMLRelation)
+	+ builtins.str: return: generate_uml()
+}
+Interface pumlpy.interface.UMLClass {
+	+ builtins.str: docstring
+	+ builtins.bool: is_interface
+	+ builtins.bool: is_builtin
+	+ list[pumlpy.interface.UMLMember]
+	+ list[pumlpy.interface.UMLMember]
+	+ list[pumlpy.interface.UMLMember]
+	+ list[pumlpy.interface.UMLMember]
+	+ list[pumlpy.interface.UMLMember]
+	+ list[pumlpy.interface.UMLMember]
+	+ list[pumlpy.interface.UMLMember]
+	+ builtins.str: return: to_puml()
+}
+Class pumlpy.impl.base.BaseExtractor::_extract_class << Method >> {
+	--Params--
+	+ builtins.type: obj
+	+ builtins.str: fqn
+	+ builtins.bool: empty
+	--Returns--
+	+ pumlpy.interface.UMLClass: return
+}
+Interface pumlpy.interface.UMLMethod {
+	+ builtins.str: docstring
+	+ list[pumlpy.interface.UMLMember]
+	+ pumlpy.interface.UMLMember: returns
+	+ builtins.str: return: to_puml()
+}
+Class pumlpy.impl.base.BaseExtractor::_extract_method << Method >> {
+	--Params--
+	+ builtins.type: obj
+	+ builtins.str: fqn
+	+ builtins.bool: empty
+	--Returns--
+	+ pumlpy.interface.UMLMethod: return
+}
+Interface pumlpy.interface.UMLParams {
+	+ list[pumlpy.interface.UMLMember]
+	+ list[pumlpy.interface.UMLMember]: get_all_args()
+	+ list[str]: get_all_args_repr()
+	+ builtins.str: return: to_puml()
+}
+Class pumlpy.impl.base.BaseExtractor::_extract_params << Method >> {
+	--Params--
+	+ builtins.type: obj
+	+ builtins.str: fqn
+	+ builtins.bool: empty
+	--Returns--
+	+ pumlpy.interface.UMLParams: return
+}
+Class pumlpy.impl.base.BaseExtractor::extract << Method >> {
+	--Params--
+	+ builtins.type: obj
+	+ builtins.str: domain
+	+ builtins.str: fqn
+	+ builtins.bool: next_layer
+	--Returns--
+	+ ~T
+}
+Class pumlpy.impl.base.BaseExtractor::refresh << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.NoneType: return
+}
+Class pumlpy.impl.base.BaseExtractor {
+	+ pumlpy.interface.UMLSpace: space
+	+ builtins.int: max_depth
+	+ builtins.bool: include_extern
+	+ ~T: extract(obj: builtins.type, domain: builtins.str, fqn: builtins.str, next_layer: builtins.bool)
+	+ builtins.NoneType: return: refresh()
+	# pumlpy.interface.UMLClass: return: _extract_class(obj: builtins.type, fqn: builtins.str, empty: builtins.bool)
+	# pumlpy.interface.UMLMethod: return: _extract_method(obj: builtins.type, fqn: builtins.str, empty: builtins.bool)
+	# pumlpy.interface.UMLParams: return: _extract_params(obj: builtins.type, fqn: builtins.str, empty: builtins.bool)
+}
+Class pumlpy.impl.base.BaseUMLSpaceItem {
+	+ builtins.object: raw
+	+ builtins.bool: empty
+	+ builtins.str: template
+	+ pumlpy.interface.UMLItemType: itype
+	+ pumlpy.interface.UMLSpace: space
+	+ builtins.str: domain
+	+ builtins.str: full_qualname
+	+ dict[pumlpy.interface.UMLItemType, str]
+
+}
+Class pumlpy.interface.UMLItemType {
+
+
+}
+Class pumlpy.impl.base.BaseUMLClass::_BaseUMLClass__check_builtins << Method >> {
+	--Params--
+	+ builtins.object: obj_class
+	--Returns--
+	+ builtins.bool: return
+}
+Class pumlpy.impl.base.BaseUMLClass::_BaseUMLClass__extract_ancestors << Method >> {
+	--Params--
+	+ builtins.object: obj_class
+	--Returns--
+	+ list[pumlpy.interface.UMLClass]
+}
+Class pumlpy.impl.base.BaseUMLClass::_BaseUMLClass__extract_attributes << Method >> {
+	--Params--
+	+ builtins.object: obj_class
+	--Returns--
+	+ tuple[list[pumlpy.interface.UMLMember]]
+}
+Class pumlpy.impl.base.BaseUMLClass::_BaseUMLClass__extract_methods << Method >> {
+	--Params--
+	+ builtins.object: obj_class
+	--Returns--
+	+ tuple[list[pumlpy.interface.UMLMethod]]
+}
+Class pumlpy.impl.base.BaseUMLClass::to_puml << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.str: return
+}
+Class pumlpy.impl.base.BaseUMLClass {
+	+ builtins.object: raw
+	+ builtins.bool: empty
+	+ builtins.str: template
+	+ pumlpy.interface.UMLItemType: itype
+	+ pumlpy.interface.UMLSpace: space
+	+ builtins.str: domain
+	+ builtins.str: full_qualname
+	+ builtins.str: docstring
+	+ builtins.bool: is_interface
+	+ builtins.bool: is_builtin
+	+ list[pumlpy.interface.UMLMember]
+	+ list[pumlpy.interface.UMLMember]
+	+ list[pumlpy.interface.UMLMember]
+	+ list[pumlpy.interface.UMLMember]
+	+ list[pumlpy.interface.UMLMember]
+	+ list[pumlpy.interface.UMLMember]
+	+ list[pumlpy.interface.UMLMember]
+	+ builtins.str: return: to_puml()
+	# builtins.bool: return: _BaseUMLClass__check_builtins(obj_class: builtins.object)
+	# list[pumlpy.interface.UMLClass]: _BaseUMLClass__extract_ancestors(obj_class: builtins.object)
+	# tuple[list[pumlpy.interface.UMLMember]]: _BaseUMLClass__extract_attributes(obj_class: builtins.object)
+	# tuple[list[pumlpy.interface.UMLMethod]]: _BaseUMLClass__extract_methods(obj_class: builtins.object)
+}
+Interface pumlpy.interface.UMLMember {
+	+ builtins.str: name
+	+ pumlpy.interface.UMLMemberMode: mode
+	+ ~T
+
+}
+Class pumlpy.interface.UMLMemberMode {
+
+
+}
+Class pumlpy.impl.base.BaseUMLMember::_BaseUMLMember__infer_mode << Method >> {
+	--Params--
+
+	--Returns--
+	+ pumlpy.interface.UMLMemberMode: return
+}
+Class pumlpy.impl.base.BaseUMLMember::to_puml << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.str: return
+}
+Class pumlpy.impl.base.BaseUMLMember {
+
+	+ builtins.str: return: to_puml()
+	# pumlpy.interface.UMLMemberMode: return: _BaseUMLMember__infer_mode()
+}
+Class pumlpy.impl.base.BaseUMLMethod::_BaseUMLMethod__extract_signatures << Method >> {
+	--Params--
+	+ method
+	--Returns--
+	+ tuple[list[~T]]
+}
+Class pumlpy.impl.base.BaseUMLMethod::to_puml << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.str: return
+}
+Class pumlpy.impl.base.BaseUMLMethod {
+
+	+ builtins.str: return: to_puml()
+	# tuple[list[~T]]: _BaseUMLMethod__extract_signatures()
+}
+Class pumlpy.impl.base.BaseUMLParams::_BaseUMLParams__extract_args << Method >> {
+	--Params--
+
+	--Returns--
+	+ list[~T]
+}
+Class pumlpy.impl.base.BaseUMLParams::get_all_args << Method >> {
+	--Params--
+
+	--Returns--
+	+ list[~T]
+}
+Class pumlpy.impl.base.BaseUMLParams::to_puml << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.str: return
+}
+Class pumlpy.impl.base.BaseUMLParams {
+	+ builtins.object: raw
+	+ builtins.bool: empty
+	+ builtins.str: template
+	+ pumlpy.interface.UMLItemType: itype
+	+ pumlpy.interface.UMLSpace: space
+	+ builtins.str: domain
+	+ builtins.str: full_qualname
+	+ list[pumlpy.interface.UMLMember]
+	+ list[~T]: get_all_args()
+	+ get_all_args_repr
+	+ builtins.str: return: to_puml()
+	# list[~T]: _BaseUMLParams__extract_args()
+}
+Interface pumlpy.interface.UMLRelation {
+	+ builtins.str: source
+	+ builtins.str: target
+	+ pumlpy.interface.UMLRelationType: relation
+	+ builtins.str: return: to_puml()
+}
+Class pumlpy.impl.base.BaseUMLRelation::register << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.NoneType: return
+}
+Class pumlpy.impl.base.BaseUMLRelation::to_puml << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.str: return
+}
+Class pumlpy.impl.base.BaseUMLRelation {
+
+	+ builtins.NoneType: return: register()
+	+ builtins.str: return: to_puml()
+}
+Class pumlpy.impl.base.BaseUMLSpace::add_item << Method >> {
+	--Params--
+	+ pumlpy.interface.UMLClass | pumlpy.interface.UMLMethod
+	--Returns--
+	+ builtins.NoneType: return
+}
+Class pumlpy.impl.base.BaseUMLSpace::add_relation << Method >> {
+	--Params--
+	+ pumlpy.interface.UMLRelation: relation
+	--Returns--
+	+ builtins.NoneType: return
+}
+Class pumlpy.impl.base.BaseUMLSpace::to_puml << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.str: return
+}
+Class pumlpy.impl.base.BaseUMLSpace {
+	+ builtins.str: name
+	+ builtins.str: template
+	+ dict[str, pumlpy.interface.UMLSpaceItem]
+	+ list[pumlpy.interface.UMLRelation]
+	+ builtins.NoneType: return: add_item(pumlpy.interface.UMLMethod: |: pumlpy.interface.UMLClas)
+	+ builtins.NoneType: return: add_relation(relation: pumlpy.interface.UMLRelation)
+	+ generate_uml
+	+ builtins.str: return: to_puml()
+}
+Interface pumlpy.interface.UMLSpaceItem {
+	+ builtins.bool: empty
+	+ builtins.str: template
+	+ pumlpy.interface.UMLItemType: itype
+	+ pumlpy.interface.UMLSpace: space
+	+ builtins.str: domain
+	+ builtins.str: full_qualname
+
+}
+Interface pumlpy.interface.UMLItem {
+	+ builtins.object: raw
+	+ builtins.str: return: to_puml()
+}
+Class pumlpy.interface.UMLClass::to_puml << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.str: return
+}
+Class pumlpy.interface.UMLExtractor::extract << Method >> {
+	--Params--
+	+ builtins.object: obj
+	+ builtins.str: domain
+	+ builtins.str: fqn
+	+ builtins.bool: next_layer
+	--Returns--
+	+ ~T
+}
+Class pumlpy.interface.UMLExtractor::refresh << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.NoneType: return
+}
+Class pumlpy.interface.UMLItem::to_puml << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.str: return
+}
+Class pumlpy.interface.UMLMethod::to_puml << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.str: return
+}
+Interface pumlpy.interface.UMLPackage {
+	+ pumlpy.interface.UMLSpace: space
+	+ builtins.str: name
+	+ builtins.str: domain
+	+ list[~T]
+	+ list['UMLPackage']
+
+}
+Class pumlpy.interface.UMLParams::get_all_args << Method >> {
+	--Params--
+
+	--Returns--
+	+ list[pumlpy.interface.UMLMember]
+}
+Class pumlpy.interface.UMLParams::get_all_args_repr << Method >> {
+	--Params--
+
+	--Returns--
+	+ list[str]
+}
+Class pumlpy.interface.UMLParams::to_puml << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.str: return
+}
+Class pumlpy.interface.UMLRelationType {
+
+
+}
+Class pumlpy.interface.UMLRelation::to_puml << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.str: return
+}
+Class pumlpy.interface.UMLSpace::add_item << Method >> {
+	--Params--
+	+ pumlpy.interface.UMLSpaceItem: item
+	--Returns--
+	+ builtins.NoneType: return
+}
+Class pumlpy.interface.UMLSpace::add_relation << Method >> {
+	--Params--
+	+ pumlpy.interface.UMLRelation: relation
+	--Returns--
+	+ builtins.NoneType: return
+}
+Class pumlpy.interface.UMLSpace::generate_uml << Method >> {
+	--Params--
+
+	--Returns--
+	+ builtins.str: return
+}
+Class pumlpy.utils.UMLPackageInspector::_UMLPackageInspector__extract_classes << Method >> {
+	--Params--
+	+ builtins.module: package
+	--Returns--
+	+ list[pumlpy.interface.UMLClass]
+}
+Class pumlpy.utils.UMLPackageInspector::_UMLPackageInspector__extract_packages << Method >> {
+	--Params--
+	+ builtins.module: package
+	--Returns--
+	+ list[pumlpy.interface.UMLPackage]
+}
+Class pumlpy.utils.UMLPackageInspector {
+
+	# list[pumlpy.interface.UMLClass]: _UMLPackageInspector__extract_classes(package: builtins.module)
+	# list[pumlpy.interface.UMLPackage]: _UMLPackageInspector__extract_packages(package: builtins.module)
+}
+
+pumlpy.impl.base.BaseExtractor ..|> pumlpy.interface.UMLExtractor
+pumlpy.impl.base.BaseExtractor --> pumlpy.interface.UMLSpace
+pumlpy.impl.base.BaseExtractor::_extract_class --> pumlpy.interface.UMLClass
+pumlpy.impl.base.BaseExtractor::_extract_method --> pumlpy.interface.UMLMethod
+pumlpy.impl.base.BaseExtractor::_extract_params --> pumlpy.interface.UMLParams
+pumlpy.impl.base.BaseUMLClass --|> pumlpy.impl.base.BaseUMLSpaceItem
+pumlpy.impl.base.BaseUMLClass ..|> pumlpy.interface.UMLClass
+pumlpy.impl.base.BaseUMLClass --> pumlpy.interface.UMLItemType
+pumlpy.impl.base.BaseUMLClass --> pumlpy.interface.UMLSpace
+pumlpy.impl.base.BaseUMLMember ..|> pumlpy.interface.UMLMember
+pumlpy.impl.base.BaseUMLMember::_BaseUMLMember__infer_mode --> pumlpy.interface.UMLMemberMode
+pumlpy.impl.base.BaseUMLMethod --|> pumlpy.impl.base.BaseUMLSpaceItem
+pumlpy.impl.base.BaseUMLMethod ..|> pumlpy.interface.UMLMethod
+pumlpy.impl.base.BaseUMLMethod::_BaseUMLMethod__extract_signatures --> builtins.callable
+pumlpy.impl.base.BaseUMLParams --|> pumlpy.impl.base.BaseUMLSpaceItem
+pumlpy.impl.base.BaseUMLParams ..|> pumlpy.interface.UMLParams
+pumlpy.impl.base.BaseUMLParams --> pumlpy.interface.UMLItemType
+pumlpy.impl.base.BaseUMLParams --> pumlpy.interface.UMLSpace
+pumlpy.impl.base.BaseUMLRelation ..|> pumlpy.interface.UMLRelation
+pumlpy.impl.base.BaseUMLSpace ..|> pumlpy.interface.UMLSpace
+pumlpy.impl.base.BaseUMLSpace::add_relation --> pumlpy.interface.UMLRelation
+pumlpy.impl.base.BaseUMLSpaceItem ..|> pumlpy.interface.UMLSpaceItem
+pumlpy.impl.base.BaseUMLSpaceItem --> pumlpy.interface.UMLItemType
+pumlpy.impl.base.BaseUMLSpaceItem --> pumlpy.interface.UMLSpace
+pumlpy.interface.UMLClass ..|> pumlpy.interface.UMLItem
+pumlpy.interface.UMLClass ..|> pumlpy.interface.UMLSpaceItem
+pumlpy.interface.UMLExtractor --> pumlpy.interface.UMLSpace
+pumlpy.interface.UMLItemType --|> enum.Enum
+pumlpy.interface.UMLMember --> pumlpy.interface.UMLMemberMode
+pumlpy.interface.UMLMemberMode --|> enum.Enum
+pumlpy.interface.UMLMethod ..|> pumlpy.interface.UMLItem
+pumlpy.interface.UMLMethod ..|> pumlpy.interface.UMLSpaceItem
+pumlpy.interface.UMLMethod --> pumlpy.interface.UMLMember
+pumlpy.interface.UMLPackage --> pumlpy.interface.UMLSpace
+pumlpy.interface.UMLParams ..|> pumlpy.interface.UMLItem
+pumlpy.interface.UMLParams ..|> pumlpy.interface.UMLSpaceItem
+pumlpy.interface.UMLRelation ..|> pumlpy.interface.UMLItem
+pumlpy.interface.UMLRelation --> pumlpy.interface.UMLRelationType
+pumlpy.interface.UMLRelationType --|> enum.Enum
+pumlpy.interface.UMLSpace::add_item --> pumlpy.interface.UMLSpaceItem
+pumlpy.interface.UMLSpace::add_relation --> pumlpy.interface.UMLRelation
+pumlpy.interface.UMLSpaceItem --> pumlpy.interface.UMLItemType
+pumlpy.interface.UMLSpaceItem --> pumlpy.interface.UMLSpace
+pumlpy.utils.UMLPackageInspector ..|> pumlpy.interface.UMLPackage
+
+@enduml

@@ -158,6 +158,7 @@ class UMLParams(UMLItem, UMLSpaceItem, Protocol):
         args (list[UMLMember]): 
             The list of arguments of raw object.
     """
+    origin: object  # TODO: Add the original object indicator
     args: list[UMLMember]
 
     def get_all_args(self) -> list[UMLMember]:
@@ -358,7 +359,7 @@ class UMLExtractor(Protocol):
         r"""Refresh the max_depth attribute."""
         pass
 
-    def extract(self, obj: object, domain: str, fqn: str = '', empty: bool = False) -> T:
+    def extract(self, obj: object, domain: str, fqn: str = '', next_layer: bool = True) -> T:
         r"""Extract a UML space item from the given object.
 
         Args:
@@ -369,8 +370,8 @@ class UMLExtractor(Protocol):
                 to the domain, it will be ignored.
             fqn (str): 
                 The fully qualified name of the object. Default is ''.
-            empty (bool): 
-                Indicates whether the item should be considered as empty or not. Default is False.
+            next_layer (bool):
+                A flag to indicate whether to extract the next layer or not. Default is True.
             
         Returns:
             UMLClass | UMLMethod | UMLParams:
