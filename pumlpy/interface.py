@@ -1,3 +1,5 @@
+import types
+import typing
 from enum import Enum
 from typing import Protocol, TypeVar, Generic, runtime_checkable
 
@@ -62,6 +64,28 @@ class UMLMemberMode(Enum):
     PRIVATE = '-'
 
 
+class UMLParamType(Enum):
+    r"""UMLParamType enumeration represents the type of a UML parameter.
+
+    Attributes:
+        TYPEVAR (typing.TypeVar): 
+            The typevar type.
+        TYPING_GENERIC (typing._GenericAlias): 
+            The typing generic alias type.
+        TYPES_GENERIC (types.GenericAlias): 
+            The types generic alias type.
+        UNION (types.UnionType):
+            The union type.
+        TYPING_UNION (typing._UnionGenericAlias):
+            The typing union generic alias type.
+    """
+    TYPEVAR = typing.TypeVar
+    TYPING_GENERIC = typing._GenericAlias       # hasattr __origin__
+    TYPES_GENERIC = types.GenericAlias          # hasattr __origin__
+    UNION = types.UnionType
+    TYPING_UNION = typing._UnionGenericAlias    # hasattr __origin__
+
+
 @runtime_checkable
 class UMLItem(Protocol):
     r"""UMLItem protocol represents an object that can be converted to PlantUML code.
@@ -112,6 +136,8 @@ class UMLSpaceItem(Protocol):
             The domain of the item.
         full_qualname (str):
             The full qualified name of the item.
+        independent (bool):
+            The flag to indicate if the object is independent. If True, the object can not be added to the UML space.
     """
     empty: bool
     template: str
@@ -119,6 +145,7 @@ class UMLSpaceItem(Protocol):
     space: 'UMLSpace'
     domain: str
     full_qualname: str
+    independent: bool
 
 
 @runtime_checkable
@@ -136,6 +163,12 @@ class UMLMember(Generic[T], Protocol):
     name: str
     mode: UMLMemberMode
     raw: T
+    template: str
+
+    def to_puml(self) -> str:
+        """Return the PlantUML code.
+        """
+        pass
 
 
 @runtime_checkable
@@ -155,19 +188,23 @@ class UMLParams(UMLItem, UMLSpaceItem, Protocol):
             The domain of the item.
         full_qualname (str):
             The full qualified name of the item.
+        independent (bool):
+            The flag to indicate if the object is independent. If True, the object can not be added to the UML space.
+        ptype (UMLParamType):
+            The type of the parameter.
+        origin (str):
+            The original object containing the parameters.
+        member_domain (str):
+            The domain of the member.
         args (list[UMLMember]): 
             The list of arguments of raw object.
     """
+    ptype: UMLParamType
     origin: object  # TODO: Add the original object indicator
     args: list[UMLMember]
 
     def get_all_args(self) -> list[UMLMember]:
         """Return all arguments.
-        """
-        pass
-
-    def get_all_args_repr(self) -> list[str]:
-        """Return representation for all argument.
         """
         pass
 
@@ -191,6 +228,8 @@ class UMLClass(UMLItem, UMLSpaceItem, Protocol):
             The domain of the item.
         full_qualname (str):
             The full qualified name of the item.
+        independent (bool):
+            The flag to indicate if the object is independent. If True, the object can not be added to the UML space.
         is_interface (bool):
             The flag to indicate if the class is an interface.
         is_builtin (bool):
@@ -242,6 +281,8 @@ class UMLMethod(UMLItem, UMLSpaceItem, Protocol):
             The domain of the item.
         full_qualname (str):
             The full qualified name of the item.
+        independent (bool):
+            The flag to indicate if the object is independent. If True, the object can not be added to the UML space.
         docstring (str):
             The docstring of the class.
         params (list[UMLClass | UMLMethod | UMLParams]): 
@@ -305,7 +346,7 @@ class UMLSpace(Protocol):
         """
         pass
 
-    def generate_uml(self) -> str:
+    def to_puml(self) -> str:
         r"""Generate the PlantUML code.
 
         Returns:

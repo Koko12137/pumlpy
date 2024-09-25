@@ -52,9 +52,12 @@ class UMLPackageInspector(interface.UMLPackage):
         
         # Extract classes
         for attribute in dir(package):
+            # Discard all the built-in classes and attributes in the package
+            if attribute.startswith('__') and attribute.endswith('__'):
+                continue
             # Check if the attribute is a class
             obj = getattr(package, attribute)
-            if inspect.isclass(obj):
+            if self.extractor.is_valid(obj):
                 # Discard all the classes that imported from other packages
                 # TODO: Add External Class/Package support that are imported in the head
                 #  if include_external is True

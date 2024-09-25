@@ -9,7 +9,7 @@ import pumlpy.interface as interface
 T = typing.TypeVar('T', interface.UMLClass, interface.UMLMethod, interface.UMLParams)
 
 
-def is_builtin_function_or_method(obj):
+def is_builtin_function_or_method(obj: object) -> bool:
     return isinstance(obj, (types.BuiltinFunctionType, types.BuiltinMethodType))
 
 
@@ -72,11 +72,12 @@ class BaseUMLSpaceItem(interface.UMLSpaceItem):
     space: interface.UMLSpace
     domain: str
     full_qualname: str
+    independent: bool
 
     templates: dict[interface.UMLItemType, str] = {
         interface.UMLItemType.CLASS: "{class_type} {name} {{\n{attributes}\n{methods}\n}}",
         interface.UMLItemType.METHOD: "Class {name} << Method >> {{\n\t--Params--\n{params}\n\t--Returns--\n{returns}\n}}",
-        interface.UMLItemType.PARAMS: "Interface {name} << GenericType >> {{\n{args}\n}}",
+        interface.UMLItemType.PARAMS: "Class {name} << {param_type} >> {{\n\t source_type: {source_type}\n\t--Params--\n{args}\n}}",
     }
 
     def __init__(
@@ -106,13 +107,23 @@ class BaseUMLSpaceItem(interface.UMLSpaceItem):
         elif hasattr(obj, '__name__'):
             name = obj.__name__
         else:
-            name = str(obj)
+            # If the object does not have a name, then it is an independent item.
+            name = 'DependentUMLItem'
+            
         self.raw = obj
         self.empty = empty
         self.itype = itype
         self.space = space
-        self.domain = obj.__module__
-        self.full_qualname = fqn if fqn else f"{self.domain}.{name}"
+        if fqn:
+            self.full_qualname = fqn
+            if "::" in fqn:
+                self.domain = fqn.split("::")[0]
+            else:
+                self.domain = '.'.join(fqn.split(".")[:-1])
+        else:
+            self.domain = obj.__module__
+            self.full_qualname = f"{self.domain}.{name}"
+        self.independent = True if "::" in self.full_qualname or name == 'IndependentUMLItem' else False
         self.template = self.templates[itype]
 
     def __repr__(self) -> str:
@@ -120,6 +131,19 @@ class BaseUMLSpaceItem(interface.UMLSpaceItem):
 
 
 class BaseUMLMember(interface.UMLMember[T]):
+    r"""UMLMember protocol represents a UML member.
+
+    Attributes:
+        name (str):
+            The name that excluding domain from Fully qualified name.
+        mode (str): 
+            The mode of the member.
+        raw (UMLClass | UMLMethod | UMLParams):
+            The raw object.
+    """
+    name: str
+    mode: interface.UMLMemberMode
+    raw: T
 
     template = "\t{mode} {body}" 
 
@@ -145,7 +169,9 @@ class BaseUMLMember(interface.UMLMember[T]):
     def to_puml(self) -> str:
         # Check if the raw object is a UMLClass object
         if self.raw.itype == interface.UMLItemType.CLASS:
-            body = f"{self.raw.full_qualname}: {self.name}"
+            fqn = self.raw.full_qualname
+            fqn = fqn.split(".")[-1]
+            body = f"{fqn}: {self.name}"
             return self.template.format(mode=self.mode.value, body=body)
         elif self.raw.itype == interface.UMLItemType.METHOD:
             if not self.raw.empty:
@@ -172,16 +198,51 @@ class BaseUMLMember(interface.UMLMember[T]):
                 # The return type of the method is a UMLMember object. So the returns of to_puml method 
                 # including the return type in the Member format.
                 ret = self.raw.returns.to_puml()
+                # Remove the mode indicator from the return type
+                ret = ' '.join(ret.split(' ')[1:])
                 # Remove the tab and mode indicator from the return type
-                ret = ' '.join(ret.split(' ')[1:])    # BUG: What if the return type is a method? NoneType?
+                if self.raw.returns.raw.itype == interface.UMLItemType.CLASS:
+                    # Remove the member name from the return type
+                    ret = ret.split(': ')[0]
+                elif self.raw.returns.raw.itype == interface.UMLItemType.METHOD:
+                    # Remove the return type for the method
+                    ret = ': '.join(ret.split(': ')[1])
+                elif self.raw.returns.raw.itype == interface.UMLItemType.PARAMS:
+                    # Remove the member name
+                    ret = ret.split(': ')[0]
+                else:
+                    raise ValueError(f'Expected UMLClass/UMLMethod/UMLParams but got {type(param.raw)}')
 
                 # Assemble the Member format of the method with the signature and return type.
                 fn_signature = f"{ret}: {self.name}({signature})"
                 return self.template.format(mode=self.mode.value, body=fn_signature)
             else:
                 return self.template.format(mode=self.mode.value, body=f"{self.name}")
-        elif self.raw.itype == interface.UMLItemType.PARAMS:    # TODO: Format with the source type
-            return self.template.format(mode=self.mode.value, body=str(self.raw.raw))
+        elif self.raw.itype == interface.UMLItemType.PARAMS: 
+            signatures: list[str] = []
+            for param in self.raw.args:
+                uml = param.to_puml()   # TODO: class/method/params
+                # Remove the mode indicator from the uml
+                uml = ' '.join(uml.split(' ')[1:])
+                if param.raw.itype == interface.UMLItemType.CLASS:
+                    # Remove the member name from the uml
+                    uml = uml.split(': ')[0]
+                elif param.raw.itype == interface.UMLItemType.METHOD:
+                    # Remove the return type for the method
+                    uml = ': '.join(uml.split(': ')[1:])
+                elif param.raw.itype == interface.UMLItemType.PARAMS:
+                    # Remove the member name
+                    uml = uml.split(': ')[0]
+                else:
+                    raise ValueError(f'Expected UMLClass/UMLMethod/UMLParams but got {type(param.raw)}')
+                
+                signatures.append(uml)
+
+            signature = ', '.join(signatures)
+            # Compose the parameter type
+            origin = self.raw.origin
+            body = f"{origin}[{signature}]"
+            return self.template.format(mode=self.mode.value, body=f"{body}: {self.name}")
         else:
             raise ValueError(f'Expected UMLClass or UMLMethod but got {type(self.raw)}')
 
@@ -197,12 +258,15 @@ class BaseUMLParams(BaseUMLSpaceItem, interface.UMLParams):
     domain: str
     full_qualname: str
     template: str
+    ptype: interface.UMLParamType
+    origin: str
     args: list[interface.UMLMember]
 
     def __init__(
         self, 
         obj: object, 
         space: interface.UMLSpace, 
+        member_domain: str, 
         extractor: interface.UMLExtractor = None,  
         fqn: str = '', 
         empty: bool = False, 
@@ -214,6 +278,8 @@ class BaseUMLParams(BaseUMLSpaceItem, interface.UMLParams):
                 The object representing the item.
             space (UMLSpace): 
                 The UMLSpace that this item belongs to.
+            member_domain (str): 
+                The domain of the member that contains in this params.
             extractor (UMLExtractor): 
                 An instance of UMLExtractor used to extract arguments from the object. Defaults to None.
             fqn (str): 
@@ -222,14 +288,54 @@ class BaseUMLParams(BaseUMLSpaceItem, interface.UMLParams):
                 A flag to indicate if the item is empty. Defaults to False.
         """
         super().__init__(obj, interface.UMLItemType.PARAMS, space, fqn, empty)
+        self.member_domain = member_domain
         self.extractor = extractor
-        if not self.empty:
-            self.args = self.__extract_args()
+        self.ptype = self.__check_param_type(obj)
+        if hasattr(self.raw, '__origin__'):
+            self.origin = self.raw.__origin__.__name__
         else:
-            self.args = []
+            match self.ptype:
+                case interface.UMLParamType.TYPEVAR:
+                    self.origin = "TypeVar"
+                case interface.UMLParamType.TYPING_UNION:
+                    self.origin = "Union"
+                case interface.UMLParamType.UNION:
+                    self.origin = "Union"
+                case _:
+                    raise ValueError(f'Unsupported object type: {type(self.raw)}')
+
+        self.args = self.__extract_args()
+
+        if not self.independent and not self.empty:
+            self.space.add_item(self)
         
     def __repr__(self) -> str:
         return f'BaseUMLParams(name={self.full_qualname})'
+
+    def __check_param_type(self, obj: object) -> interface.UMLParamType:
+        """Check the parameter type of an object.
+        
+        Args:
+            obj (object): 
+                The object to check.
+        
+        Returns:
+            UMLParamType: 
+                The parameter type of the object.
+        """
+        match obj.__class__:
+            case typing.TypeVar:
+                return interface.UMLParamType.TYPEVAR
+            case typing._GenericAlias:
+                return interface.UMLParamType.TYPING_GENERIC
+            case types.GenericAlias:
+                return interface.UMLParamType.TYPES_GENERIC
+            case types.UnionType:
+                return interface.UMLParamType.UNION
+            case typing._UnionGenericAlias:
+                return interface.UMLParamType.TYPING_UNION
+            case _:
+                raise ValueError(f'Unsupported object type: {type(obj)}')
 
     def __extract_args(self) -> list[T]:
         """Extract the arguments of a parameter type hint object.
@@ -249,15 +355,17 @@ class BaseUMLParams(BaseUMLSpaceItem, interface.UMLParams):
         # Create container for arguments
         uml_args = []
         for arg in args:
+            if isinstance(arg, str):
+                pkg = importlib.import_module(self.member_domain)
+                arg = getattr(pkg, arg)
             uml_arg = self.extractor.extract(arg, self.domain)
             # Create a Generic UMLMember object for the argument depending on the item type
-            name = uml_arg.full_qualname.split('.')[-1]
             if uml_arg.itype == interface.UMLItemType.PARAMS:
-                member = BaseUMLMember[interface.UMLParams](name, uml_arg)
+                member = BaseUMLMember[interface.UMLParams]('', uml_arg)
             elif uml_arg.itype == interface.UMLItemType.CLASS:
-                member = BaseUMLMember[interface.UMLClass](name, uml_arg)
+                member = BaseUMLMember[interface.UMLClass]('', uml_arg)
             elif uml_arg.itype == interface.UMLItemType.METHOD:
-                member = BaseUMLMember[interface.UMLMethod](name, uml_arg)
+                member = BaseUMLMember[interface.UMLMethod]('', uml_arg)
             else:
                 raise TypeError('Unsupported attribute type')
             uml_args.append(member)
@@ -277,9 +385,31 @@ class BaseUMLParams(BaseUMLSpaceItem, interface.UMLParams):
         return args
     
     def to_puml(self) -> str:
+        if self.independent:
+            raise ValueError("The UMLParams object is independent")
+        args = []
+        for arg in self.args:
+            uml = arg.to_puml()
+            # Remove the mode indicator from the uml
+            uml = ' '.join(uml.split(' ')[1:])
+            if arg.raw.itype == interface.UMLItemType.CLASS:
+                # Remove the member name from the uml
+                uml = uml.split(': ')[0]
+            elif arg.raw.itype == interface.UMLItemType.METHOD:
+                # Remove the return type for the method
+                uml = ': '.join(uml.split(': ')[1:])
+            elif arg.raw.itype == interface.UMLItemType.PARAMS:
+                # Remove the member name
+                ret = ret.split(': ')[0]
+            else:
+                raise ValueError(f'Expected UMLClass/UMLMethod/UMLParams but got {type(arg.raw)}')
+            args.append(uml)
+
         return self.template.format(
             name=self.full_qualname, 
-            args='\n'.join([arg.to_puml() for arg in self.args]), 
+            param_type=self.ptype, 
+            source_type=self.origin, 
+            args='\n'.join(args), 
         )
 
 
@@ -466,6 +596,9 @@ class BaseUMLClass(BaseUMLSpaceItem, interface.UMLClass):
 
         # Extract public attributes
         for name, value in attributes.items():
+            if isinstance(value, str):
+                pkg = importlib.import_module(self.domain)
+                value = getattr(pkg, value)
             attribute = self.extractor.extract(value, self.domain)
 
             # Inject the attribute to initialize a UMLMember object
@@ -554,6 +687,10 @@ class BaseUMLClass(BaseUMLSpaceItem, interface.UMLClass):
             if name.startswith('__') and name.endswith('__'):
                 continue
             
+            # Check if the class name in the attribute name
+            if self.raw.__name__ in name:
+                # If so, remove the class name from the method name
+                name = name.replace(f"_{self.raw.__name__}", "")
             # Designate the fully qualified name of the method
             fqn = f"{self.full_qualname}::{name}"
             # Create a UMLMethod object
@@ -595,6 +732,41 @@ class BaseUMLClass(BaseUMLSpaceItem, interface.UMLClass):
 
 
 class BaseUMLMethod(BaseUMLSpaceItem, interface.UMLMethod):
+    r"""UMLMethod protocol represents a UML method object.
+    
+    Attributes:
+        raw (object): 
+            The original object.
+        empty (bool):
+            The flag to indicate if the item is empty.
+        template (str): 
+            The template to use for the PlantUML code generation.
+        itype (UMLItemType):
+            The type of the item.
+        space (UMLSpace): 
+            The UML space that contains this item.
+        domain (str):
+            The domain of the item.
+        full_qualname (str):
+            The full qualified name of the item.
+        docstring (str):
+            The docstring of the class.
+        params (list[UMLClass | UMLMethod | UMLParams]): 
+            The list of parameters of the method.
+        returns (UMLClass | UMLMethod | UMLParams): 
+            The list of return types of the method.
+    """
+    raw: object
+    empty: bool
+    template: str
+    itype: interface.UMLItemType
+    space: interface.UMLSpace
+    domain: str
+    full_qualname: str
+
+    docstring: str
+    params: list[interface.UMLMember]
+    returns: interface.UMLMember
 
     def __init__(
         self, 
@@ -607,26 +779,16 @@ class BaseUMLMethod(BaseUMLSpaceItem, interface.UMLMethod):
         """Get a method as input and return a UMLMethod object.
         
         Args:
-            raw (object): 
-                The original object.
-            empty (bool):
-                The flag to indicate if the item is empty.
-            template (str): 
-                The template to use for the PlantUML code generation.
-            itype (UMLItemType):
-                The type of the item.
+            method (callable): 
+                The method to be converted to a UMLMethod object.
             space (UMLSpace): 
-                The UML space that contains this item.
-            domain (str):
-                The domain of the item.
-            full_qualname (str):
-                The full qualified name of the item.
-            docstring (str):
-                The docstring of the class.
-            params (list[UMLClass | UMLMethod | UMLParams]): 
-                The list of parameters of the method.
-            returns (UMLClass | UMLMethod | UMLParams): 
-                The list of return types of the method.
+                The UMLSpace instance to which the UMLMethod object belongs.
+            extractor (UMLExtractor): 
+                An instance of UMLExtractor used to extract members from the method. Defaults to None.
+            fqn (str):
+                The fully qualified name of the method. Defaults to an empty string.
+            empty (bool):
+                A flag to indicate whether the method is empty or not. Defaults to False.
         
         Returns:
             None
@@ -643,8 +805,9 @@ class BaseUMLMethod(BaseUMLSpaceItem, interface.UMLMethod):
             self.params = []
             self.returns = None
 
-        # Update the method to the UMLSpace
-        self.space.add_item(self)
+        if not self.independent and not self.empty:
+            # Update the method to the UMLSpace
+            self.space.add_item(self)
 
     def __repr__(self) -> str:
         return f'BaseUMLMethod(name={self.full_qualname})'
@@ -723,6 +886,8 @@ class BaseUMLMethod(BaseUMLSpaceItem, interface.UMLMethod):
         return params, returns
     
     def to_puml(self) -> str:
+        if self.independent:
+            raise ValueError("The UMLMethod object is independent")
         params = [param.to_puml() for param in self.params]
         returns = self.returns.to_puml()
         uml = self.template.format(
@@ -776,8 +941,8 @@ class BaseUMLSpace(interface.UMLSpace):
             TypeError: 
                 If the input is not a UMLClass or UMLMethod object.
         """
-        if not isinstance(obj_class, (interface.UMLClass, interface.UMLMethod)):
-            raise TypeError(f'Expected UMLClass or UMLMethod but got {type(obj_class)}')
+        if not isinstance(obj_class, (interface.UMLClass, interface.UMLMethod, interface.UMLParams)):
+            raise TypeError(f'Expected UMLClass/UMLMethod/UMLParams but got {type(obj_class)}')
         self.classes[obj_class.full_qualname] = obj_class
 
     def add_relation(self, relation: interface.UMLRelation) -> None:
@@ -805,6 +970,8 @@ class BaseUMLSpace(interface.UMLSpace):
         tracked_relations = []
         for rel in self.relations:
             if rel.source in self.classes.keys() and rel.target in self.classes.keys():
+                tracked_relations.append(rel)
+            elif "::" in rel.source and rel.source.split("::")[0] in self.classes.keys():
                 tracked_relations.append(rel)
 
         # Generate the PlantUML code
@@ -876,11 +1043,11 @@ class BaseExtractor(interface.UMLExtractor):
         if inspect.isclass(obj):
             item = self._extract_class(obj, fqn, empty)
         # Check if the object is a function
-        elif inspect.isfunction(obj):
+        elif inspect.isfunction(obj) or inspect.ismethod(obj):
             item = self._extract_method(obj, fqn, empty)
         # Check if the object is a Generic/TypeVar or any other parameter container
         elif hasattr(obj, '__args__') or hasattr(obj, '__constraints__'):
-            item = self._extract_params(obj, fqn, empty)
+            item = self._extract_params(obj, domain, fqn, empty)
         elif hasattr(obj, '__forward_arg__'): 
             pkg = importlib.import_module(domain)
             obj = getattr(pkg, obj.__forward_arg__)
@@ -888,12 +1055,6 @@ class BaseExtractor(interface.UMLExtractor):
         # Check if the object is a NoneType
         elif obj is None:
             obj = type(obj)
-            item = self.extract(obj, domain, fqn, empty)
-        # Check if the object is a string
-        elif isinstance(obj, str):
-            # Try to import the object from the domain
-            pkg = importlib.import_module(domain)
-            obj = getattr(pkg, obj)
             item = self.extract(obj, domain, fqn, empty)
         # Check if the object is a built-in method or function
         elif is_builtin_function_or_method(obj):
@@ -906,6 +1067,14 @@ class BaseExtractor(interface.UMLExtractor):
             # Update the layer
             self.layer -= 1
         return item
+
+    @staticmethod
+    def is_valid(obj: object) -> bool:
+        if inspect.isclass(obj) or inspect.isfunction(obj) or inspect.ismethod(obj) or is_builtin_function_or_method(obj):
+            return True
+        elif hasattr(obj, '__args__') or hasattr(obj, '__constraints__') or hasattr(obj, '__forward_arg__') or obj is None:
+            return True
+        return False
 
         
     def _extract_class(self, obj: type, fqn: str = '', empty: bool = False) -> interface.UMLClass:
@@ -959,13 +1128,14 @@ class BaseExtractor(interface.UMLExtractor):
             uml_method = BaseUMLMethod(obj, self.space, self, fqn, empty)
         return uml_method
 
-    def _extract_params(self, obj: type, fqn: str = '', empty: bool = False) -> interface.UMLParams:
+    def _extract_params(self, obj: type, member_domain: str, fqn: str = '', empty: bool = False) -> interface.UMLParams:
         try :
             fqn = f"{obj.__module__}.{obj.__name__}" if not fqn else fqn    # BUG: Cannot extract the name of the types.Union object
             # Check if the object is already in the list of classes in UMLSpace
             if fqn in self.space and not self.space[fqn].empty:
                 return self.space[fqn]
             else:
-                return BaseUMLParams(obj, self.space, self, fqn, empty)
+                return BaseUMLParams(obj, self.space, member_domain, self, fqn, empty)
         except:
-            return BaseUMLParams(obj, self.space, self, '', empty)    
+            return BaseUMLParams(obj, self.space, member_domain, self, '', empty)    
+        
