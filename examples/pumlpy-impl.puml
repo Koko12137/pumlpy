@@ -1,0 +1,108 @@
+@startuml       pumlpy.impl
+Class pumlpy.impl.base.BaseUMLClass {
+        + bool: is_interface
+        + list[pumlpy.interface.UMLClass, pumlpy.interface.UMLObjectRef]: ancestors
+        + dict[UMLMemberMode, list[pumlpy.interface.UMLMember]]: attributes
+        + dict[UMLMemberMode, list[pumlpy.interface.UMLMember]]: methods
+        + list[pumlpy.interface.UMLMember]: public_attributes
+        + list[pumlpy.interface.UMLMember]: protected_attributes
+        + list[pumlpy.interface.UMLMember]: private_attributes
+        + list[pumlpy.interface.UMLMember]: public_methods
+        + list[pumlpy.interface.UMLMember]: protected_methods
+        + list[pumlpy.interface.UMLMember]: private_methods
+        + to_puml: str
+}
+Class pumlpy.impl.base.BaseUMLDocstring {
+        + str: alias
+        + pumlpy.interface.UMLObject: source
+        + str: docstring
+        + to_puml: str
+}
+Class pumlpy.impl.base.BaseUMLGeneric {
+        + bool: is_builtin
+        + list[pumlpy.interface.UMLParam]: args
+        + to_puml: str
+}
+Class pumlpy.impl.base.BaseUMLItem {
+        + UMLTemplate: template
+        + to_puml: str
+}
+Class pumlpy.impl.base.BaseUMLMember {
+        + pumlpy.interface.UMLMemberMode: mode
+        + to_puml: str
+        - __infer_mode: pumlpy.interface.UMLMemberMode
+}
+Class pumlpy.impl.base.BaseUMLMethod {
+        + bool: is_bounded
+        + list[pumlpy.interface.UMLParam]: params
+        + pumlpy.interface.UMLParam: returns
+        + to_puml: str
+}
+Class pumlpy.impl.base.BaseUMLObjWrapper {
+        + Union[pumlpy.interface.UMLObject, pumlpy.interface.UMLObjectRef]: hint
+        + to_puml: str
+}
+Class pumlpy.impl.base.BaseUMLObject {
+        + object: raw
+        + pumlpy.rtypes.UMLType: rtype
+        + str: domain
+        + str: full_qualname
+        + bool: empty
+        + str: docstring
+        + dict[pumlpy.rtypes.UMLType, UMLTemplate]: template_maps
+        + to_puml: str
+}
+Class pumlpy.impl.base.BaseUMLObjectRef {
+        + str: full_qualname
+        + pumlpy.interface.UMLSpace: space
+        + get: pumlpy.interface.UMLObject
+}
+Class pumlpy.impl.base.BaseUMLParam {
+        + str: full_qualname
+        + to_puml: str
+}
+Class pumlpy.impl.base.BaseUMLRelation {
+        + str: source
+        + str: target
+        + pumlpy.interface.UMLRelationType: relation
+        + to_puml: str
+}
+Class pumlpy.impl.base.BaseUMLSpace {
+        + str: name
+        + str: limit_fqn
+        + bool: include_docs
+        + dict[str, pumlpy.interface.UMLObjectRef]: refs
+        + dict[str, pumlpy.interface.UMLObject]: objs
+        + add_item(item: pumlpy.interface.UMLObject): pumlpy.interface.UMLObjectRef
+        + gen_docstring: list[pumlpy.interface.UMLDocstring]
+        + gen_relations: list[pumlpy.interface.UMLRelation]
+        + register(full_qualname: str): pumlpy.interface.UMLObjectRef
+        + to_puml: str
+        - __gen_class_rels(obj: pumlpy.interface.UMLClass): list[pumlpy.interface.UMLRelation]
+        - __gen_generic_rels(obj: pumlpy.interface.UMLGeneric, source: str): list[pumlpy.interface.UMLRelation]
+        - __gen_method_rels(obj: pumlpy.interface.UMLMethod, source: str): list[pumlpy.interface.UMLRelation]
+        - __gen_wrapped_rels(obj: Union[pumlpy.interface.UMLParam, pumlpy.interface.UMLMember], source: str): list[pumlpy.interface.UMLRelation]
+}
+Class pumlpy.impl.base.UMLMemberMode {
+
+
+}
+Class pumlpy.impl.base.UMLRelationType {
+
+
+}
+Class pumlpy.impl.base.UMLTemplate {
+
+
+}
+pumlpy.impl.base.BaseUMLClass --|> pumlpy.impl.base.BaseUMLObject
+pumlpy.impl.base.BaseUMLDocstring --|> pumlpy.impl.base.BaseUMLItem
+pumlpy.impl.base.BaseUMLGeneric --|> pumlpy.impl.base.BaseUMLObject
+pumlpy.impl.base.BaseUMLMember --|> pumlpy.impl.base.BaseUMLParam
+pumlpy.impl.base.BaseUMLMethod --|> pumlpy.impl.base.BaseUMLObject
+pumlpy.impl.base.BaseUMLObjWrapper --|> pumlpy.impl.base.BaseUMLItem
+pumlpy.impl.base.BaseUMLObject --|> pumlpy.impl.base.BaseUMLItem
+pumlpy.impl.base.BaseUMLParam --|> pumlpy.impl.base.BaseUMLObjWrapper
+pumlpy.impl.base.BaseUMLRelation --|> pumlpy.impl.base.BaseUMLItem
+pumlpy.impl.base.BaseUMLSpace --|> pumlpy.impl.base.BaseUMLItem
+@enduml

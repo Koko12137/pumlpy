@@ -1,26 +1,57 @@
-import types
-import typing
 from enum import Enum
-from typing import Protocol, TypeVar, Generic, runtime_checkable
+from typing import Protocol, runtime_checkable, TypeVar, Generic, Union
+
+import pumlpy.rtypes as rtypes
 
 
-T = TypeVar('T', 'UMLClass', 'UMLMethod', 'UMLParams')
+T = TypeVar('T', bound=Union['UMLClass', 'UMLMethod', 'UMLGeneric'])
 
 
-class UMLItemType(Enum):
-    r"""UMLItemType enumeration represents the type of a UML item.
+class UMLTemplate(Enum):
+    r"""UMLTemplate enumeration represents the template of a UML diagram.
 
     Attributes:
         CLASS (str): 
-            The class type.
+            The template for a UMLClass.
         METHOD (str): 
-            The method type.
-        PARAMS (str): 
-            The params type.
+            The template for a UMMethod.
+        GENERIC (str):
+            The template for a UMLGeneric. 
+        PARAM (str):
+            The template for a UMLParam. 
+        MEMBER (str):
+            The template for a UMLMember. 
+        DOCS (str):
+            The template for a UMLDocstrings. 
+        RELATION (str):
+            The template for a UMLRelation. 
+        SPACE (str):
+            The template for a UMLSpace. 
     """
-    CLASS = 'class'
-    METHOD = 'method'
-    PARAMS = 'params'
+    CLASS: str 
+    METHOD: str 
+    GENERIC: str 
+    PARAM: str 
+    MEMBER: str 
+    DOCS: str 
+    RELATION: str 
+    SPACE: str 
+
+
+class UMLMemberMode(Enum):
+    r"""UMLMemberMode enumeration represents the mode of a UML member.
+
+    Attributes:
+        PUBLIC (str): 
+            The public mode.
+        PROTECTED (str): 
+            The protected mode.
+        PRIVATE (str): 
+            The private mode.
+    """
+    PUBLIC: str
+    PROTECTED: str
+    PRIVATE: str
 
 
 class UMLRelationType(Enum):
@@ -39,67 +70,240 @@ class UMLRelationType(Enum):
             The implementation type.
         DEPENDENCY (str):
             The dependency type.
+        LINK (str):
+            The link type.
     """
-    ASSOCIATION = '--'
-    AGGREGATION = '*-->'
-    COMPOSITION = 'o-->'
-    INHERITANCE = '--|>'
-    IMPLEMENTATION = '..|>'
-    DEPENDENCY = '-->'
+    ASSOCIATION: str
+    AGGREGATION: str
+    COMPOSITION: str
+    INHERITANCE: str
+    IMPLEMENTATION: str
+    DEPENDENCY: str
+    LINK: str
+    
 
+"""Basic UML Models
 
-class UMLMemberMode(Enum):
-    r"""UMLMemberMode enumeration represents the mode of a UML member.
-
-    Attributes:
-        PUBLIC (str): 
-            The public mode.
-        PROTECTED (str): 
-            The protected mode.
-        PRIVATE (str): 
-            The private mode.
-    """
-    PUBLIC = '+'
-    PROTECTED = '#'
-    PRIVATE = '-'
-
-
-class UMLParamType(Enum):
-    r"""UMLParamType enumeration represents the type of a UML parameter.
-
-    Attributes:
-        TYPEVAR (typing.TypeVar): 
-            The typevar type.
-        TYPING_GENERIC (typing._GenericAlias): 
-            The typing generic alias type.
-        TYPES_GENERIC (types.GenericAlias): 
-            The types generic alias type.
-        UNION (types.UnionType):
-            The union type.
-        TYPING_UNION (typing._UnionGenericAlias):
-            The typing union generic alias type.
-    """
-    TYPEVAR = typing.TypeVar
-    TYPING_GENERIC = typing._GenericAlias       # hasattr __origin__
-    TYPES_GENERIC = types.GenericAlias          # hasattr __origin__
-    UNION = types.UnionType
-    TYPING_UNION = typing._UnionGenericAlias    # hasattr __origin__
+Define the protocol for all items that can be added to UML Space and can be converted to UML code.
+"""
 
 
 @runtime_checkable
 class UMLItem(Protocol):
-    r"""UMLItem protocol represents an object that can be converted to PlantUML code.
+    r"""UMLItem protocol represents an object that can be converted to UML code. 
     
     Attributes:
-        raw (object): The original object.
-    """
+        template (UMLTemplate): 
+            The template to use for the UML code generation.
 
-    raw: object
+    Methods:
+        to_puml() -> str:
+            Return the UML code. 
+    """
+    template: UMLTemplate
 
     def to_puml(self) -> str:
-        """Return the PlantUML code.
+        """Return the UML code.
+
+        Returns:
+            str:
+                The UML code.
         """
         pass
+
+
+"""Major UML Models
+
+Include UMLClass, UMLMethod and UMLGeneric. These define the basic object that can be added to 
+UMLSpace. Basic object could be included in another basic object after wrapping it with 
+UMLObjWrapeer.
+"""
+
+
+@runtime_checkable
+class UMLObject(UMLItem, Protocol):
+    r"""UMLObject protocol represents an object that can be converted to UML code. 
+    This protocol should be inherited by all basic UMLObjects for the purpose of unifying the 
+    generation of fully qualified name and domain. We recommend that all UML models should 
+    implement `__repr__` and `__str__` methods.
+    
+    Attributes:
+        raw (object): 
+            The raw object.
+        rtype (UMLType):
+            The Raw Type of the raw object.
+        domain (str):
+            The domain of the source object. 
+            For example, `pumlpy.interface.model`.
+        full_qualname (str):
+            The full qualified name of the source object. 
+            For example, `pumlpy.interface.model.UMLItem`.
+        empty (bool):
+            The flag to indicate if this item is empty. If True, the item will be ignored when 
+            generating UML code.
+        docstring (str):
+            The docstring of the source object. 
+
+    Methods:
+        to_puml() -> str:
+            Return the UML code. 
+    """
+    raw: object
+    rtype: rtypes.UMLType
+    domain: str
+    full_qualname: str
+    empty: bool
+    docstring: str
+
+
+@runtime_checkable
+class UMLClass(UMLObject, Protocol):
+    r"""UMLClass protocol represents a UML class object that can be converted to UML code. 
+    An UMLClass contains a series of attributes and methods.
+
+    Attributes:
+        is_interface (bool):
+            The flag to indicate if the class is an interface.
+        ancestors (list[UMLClass | UMLObjectRef]):
+            The list of UMLClass or UMLObjectRefs that refer to ancestors of the class. 
+        attributes (dict[UMLMemberMode, list[UMLMember]]):
+            The dictionary of attributes grouped by their modes.
+        methods (dict[UMLMemberMode, list[UMLMember]]):
+            The dictionary of methods grouped by their modes. 
+        public_attributes (list[UMLMember]):
+            The list of public attributes of the class.
+        protected_attributes (list[UMLMember]):
+            The list of protected attributes of the class.
+        private_attributes (list[UMLMember]):
+            The list of private attributes of the class.
+        public_methods (list[UMLMember]):
+            The list of public methods of the class.
+        protected_methods (list[UMLMember]):
+            The list of protected methods of the class.
+        private_methods (list[UMLMember]):
+            The list of private methods of the class.
+            
+    Methods:
+        to_puml() -> str:
+            Return the UML code. 
+    """
+    is_interface: bool
+    ancestors: list[Union['UMLClass', 'UMLObjectRef']]
+    attributes: dict[UMLMemberMode, list['UMLMember']]
+    methods: dict[UMLMemberMode, list['UMLMember']]
+    public_attributes: list['UMLMember']
+    protected_attributes: list['UMLMember']
+    private_attributes: list['UMLMember']
+    public_methods: list['UMLMember']
+    protected_methods: list['UMLMember']
+    private_methods: list['UMLMember']
+
+
+@runtime_checkable
+class UMLMethod(UMLObject, Protocol):
+    r"""UMLMethod protocol represents a UML method object.
+    
+    Attributes:
+        is_bounded (bool): 
+            The flag to indicate if the method is bounded. 
+        params (list[UMLParam]): 
+            The parameters of the method that wrapped in UMLParam.
+        returns (UMLParam): 
+            The returns of the method that wrapped in UMLParam.
+            
+    Methods:
+        to_puml() -> str:
+            Return the UML code. 
+    """
+    is_bounded: bool
+    params: list['UMLParam']
+    returns: 'UMLParam'
+
+
+@runtime_checkable
+class UMLGeneric(UMLObject, Protocol):
+    """UMLGeneric protocol represents a UML type hint object. 
+    Type hint objects would only be included in a parameter of a method or another type hint 
+    object.
+
+    Attributes:
+        is_builtin (bool): 
+            The flag to indicate if the generic type container is a built-in type.
+        args (list[UMLParam]):
+            The arguments of the generic type hint.
+            
+    Methods:
+        to_puml() -> str:
+            Return the UML code. 
+    """
+    is_builtin: bool
+    args: list['UMLParam']
+
+
+"""UMLObjWrapper Models
+
+Include UMLParam, UMLMember. These define the wrapper used to override the default template and 
+UML code generation for the basic UMLObject. Every UMLObject should be wrapped as a UMLMember 
+before injecting it into another UMLClass, as well as a UMLParam in a UMLMethod and UMLGeneric. 
+"""
+
+
+@runtime_checkable
+class UMLObjWrapper(UMLItem, Protocol):
+    """UMLItemWrapper protocol represents an UML object that included in another UML object. 
+    It could be a Parameter in a Method or a Member in a Class. This protocol should be 
+    used to wrap the UMLItem object and override the default template in the UMLItem object. 
+
+    Attributes:
+        template (UMLTemplate): 
+            The template to use for the UML code generation.
+            This is used to override the default template in the UMLItem object. 
+        hint (UMLObject | UMLObjectRef):
+            This could be a UMLObject or a UMLObjectRef. 
+            The UMLObjectRef refers to a UMLObject in UMLSpace. 
+            The UMLObject is a UMLObject in UMLSpace that included in another UMLObject. 
+            It refers to a type hinter indicating the type of the wrapped UMLObject. 
+            
+    Methods:
+        to_puml() -> str:
+            Return the UML code. 
+    """
+    hint: Union[UMLObject, 'UMLObjectRef']
+
+
+@runtime_checkable
+class UMLParam(UMLObjWrapper, Protocol):
+    r"""UMLParam protocol represents a UML object with parameter and type hints.
+    
+    Attributes:
+        full_qualname (str):
+            The full qualified name of the member. It should be designated by the host item.
+            
+    Methods:
+        to_puml() -> str:
+            Return the UML code. 
+    """
+    full_qualname: str
+
+
+@runtime_checkable
+class UMLMember(UMLParam, Protocol):
+    r"""UMLMember protocol represents a UML member.
+
+    Attributes:
+        mode (str): 
+            The mode of the member.
+            
+    Methods:
+        to_puml() -> str:
+            Return the UML code. 
+    """
+    mode: UMLMemberMode
+
+
+"""UML Space Models
+
+"""
 
 
 @runtime_checkable
@@ -113,6 +317,10 @@ class UMLRelation(UMLItem, Protocol):
             The target class of the relation.
         relation (UMLRelationType): 
             The type of the relation.
+            
+    Methods:
+        to_puml() -> str:
+            Return the UML code. 
     """
     source: str
     target: str
@@ -120,209 +328,97 @@ class UMLRelation(UMLItem, Protocol):
 
 
 @runtime_checkable
-class UMLSpaceItem(Protocol):
-    r"""UMLSpaceItem protocol represents a UML item in a UML space.
-    
-    Attributes:
-        empty (bool):
-            The flag to indicate if the item is empty.
-        template (str): 
-            The template to use for the PlantUML code generation.
-        itype (UMLItemType):
-            The type of the item.
-        space (UMLSpace): 
-            The UML space that contains this item.
-        domain (str):
-            The domain of the item.
-        full_qualname (str):
-            The full qualified name of the item.
-        independent (bool):
-            The flag to indicate if the object is independent. If True, the object can not be added to the UML space.
-    """
-    empty: bool
-    template: str
-    itype: UMLItemType
-    space: 'UMLSpace'
-    domain: str
-    full_qualname: str
-    independent: bool
-
-
-@runtime_checkable
-class UMLMember(Generic[T], Protocol):
-    r"""UMLMember protocol represents a UML member.
+class UMLDocstring(UMLItem, Protocol):
+    r"""A UML docstring Protocol.
 
     Attributes:
-        name (str):
-            The name that excluding domain from Fully qualified name.
-        mode (str): 
-            The mode of the member.
-        raw (UMLClass | UMLMethod | UMLParams):
-            The raw object.
-    """
-    name: str
-    mode: UMLMemberMode
-    raw: T
-    template: str
-
-    def to_puml(self) -> str:
-        """Return the PlantUML code.
-        """
-        pass
-
-
-@runtime_checkable
-class UMLParams(UMLItem, UMLSpaceItem, Protocol):
-    r"""UMLParams protocol represents a UML object with parameters and types.
-    
-    Attributes:
-        raw (object): 
-            The original object.
-        empty (bool):
-            The flag to indicate if the item is empty.
-        template (str): 
-            The template to use for the PlantUML code generation.
-        space (UMLSpace): 
-            The UML space that contains this item.
-        domain (str):
-            The domain of the item.
-        full_qualname (str):
-            The full qualified name of the item.
-        independent (bool):
-            The flag to indicate if the object is independent. If True, the object can not be added to the UML space.
-        ptype (UMLParamType):
-            The type of the parameter.
-        origin (str):
-            The original object containing the parameters.
-        member_domain (str):
-            The domain of the member.
-        args (list[UMLMember]): 
-            The list of arguments of raw object.
-    """
-    ptype: UMLParamType
-    origin: object  # TODO: Add the original object indicator
-    args: list[UMLMember]
-
-    def get_all_args(self) -> list[UMLMember]:
-        """Return all arguments.
-        """
-        pass
-
-
-@runtime_checkable
-class UMLClass(UMLItem, UMLSpaceItem, Protocol):
-    r"""UMLClass protocol represents a UML class object.
-
-    Attributes:
-        raw (object): 
-            The original object.
-        empty (bool):
-            The flag to indicate if the item is empty.
-        template (str): 
-            The template to use for the PlantUML code generation.
-        itype (UMLItemType):
-            The type of the item.
-        space (UMLSpace): 
-            The UML space that contains this item.
-        domain (str):
-            The domain of the item.
-        full_qualname (str):
-            The full qualified name of the item.
-        independent (bool):
-            The flag to indicate if the object is independent. If True, the object can not be added to the UML space.
-        is_interface (bool):
-            The flag to indicate if the class is an interface.
-        is_builtin (bool):
-            The flag to indicate if the class is built-in.
-        ancestors (list[UMLMember]):
-            The list of ancestors of the class.
-        public_attributes (list[UMLMember]):
-            The list of public attributes of the class.
-        protected_attributes (list[UMLMember]):
-            The list of protected attributes of the class.
-        private_attributes (list[UMLMember]):
-            The list of private attributes of the class.
-        public_methods (list[UMLMember]):
-            The list of public methods of the class.
-        protected_methods (list[UMLMember]):
-            The list of protected methods of the class.
-        private_methods (list[UMLMember]):
-            The list of private methods of the class.
-    """
-    docstring: str
-    is_interface: bool
-    is_builtin: bool
-
-    ancestors: list[UMLMember]
-    public_attributes: list[UMLMember]
-    protected_attributes: list[UMLMember]
-    private_attributes: list[UMLMember]
-    public_methods: list[UMLMember]
-    protected_methods: list[UMLMember]
-    private_methods: list[UMLMember]
-
-
-@runtime_checkable
-class UMLMethod(UMLItem, UMLSpaceItem, Protocol):
-    r"""UMLMethod protocol represents a UML method object.
-    
-    Attributes:
-        raw (object): 
-            The original object.
-        empty (bool):
-            The flag to indicate if the item is empty.
-        template (str): 
-            The template to use for the PlantUML code generation.
-        itype (UMLItemType):
-            The type of the item.
-        space (UMLSpace): 
-            The UML space that contains this item.
-        domain (str):
-            The domain of the item.
-        full_qualname (str):
-            The full qualified name of the item.
-        independent (bool):
-            The flag to indicate if the object is independent. If True, the object can not be added to the UML space.
+        alias (str): 
+            The alias of the docstring. 
+        source (UMLObject): 
+            The source UMLObject of the docstring.
         docstring (str):
-            The docstring of the class.
-        params (list[UMLClass | UMLMethod | UMLParams]): 
-            The list of parameters of the method.
-        returns (UMLClass | UMLMethod | UMLParams): 
-            The list of return types of the method.
+            The docstring of the docstring.
+            
+    Methods:
+        to_puml() -> str:
+            Return the UML code. 
     """
-    docstring: str
-    params: list[UMLMember]
-    returns: UMLMember
+    alias: str
+    source: UMLObject
+    docstring: str 
+
+
+@runtime_checkable
+class UMLObjectRef(Protocol):
+    r"""UMLObjectRef protocol represents a reference to a UMLObject.
+    
+    Attributes:
+        full_qualname (str): 
+            The full qualified name of the UMLObject. 
+        space (UMLSpace): 
+            The UMLSpace where the UMLObject is located. 
+    """
+    full_qualname: str
+    space: 'UMLSpace'
+
+    def get(self) -> UMLObject:
+        pass
     
 
 @runtime_checkable
-class UMLSpace(Protocol):
+class UMLSpace(UMLItem, Protocol):
     r"""UMLSpace protocol represents a UML space.
 
     Attributes:
         name (str): 
-            The name of the UML space.
-        template (str): 
-            The template to use for the PlantUML code generation.
-        items (dict[str, UMLItem]): 
+            The name of the UML space. 
+        limit_fqn (str): 
+            The limitation of fully qualified name of the UML space. If provided, the UML space 
+            will only contain the items whose fully qualified name starts with the given string 
+            and items that are linked directly to the specific items. The relations will not be 
+            simplified by the UML space if the limitation is provided. 
+        include_docs (bool):
+            The flag to indicate if the docstrings should be included in the UML code. 
+        refs (dict[str, UMLObjectRef]): 
+            A dictionary containing all references to the UML objects in the UML space.  
+        objs (dict[str, UMLObject]): 
             A dictionary containing all classes in the UML space.
-        relations (list[UMLRelation]): 
-            A list of relations between classes.
+            
+    Methods:
+        to_puml() -> str:
+            Return the UML code. 
     """
+    template: UMLTemplate 
     name: str
-    template: str
-    items: dict[str, UMLSpaceItem]
-    relations: list[UMLRelation]
+    limit_fqn: str
+    include_docs: bool
+    refs: dict[str, UMLObjectRef]
+    objs: dict[str, UMLObject]
 
-    def add_item(self, item: UMLSpaceItem) -> None:
-        r"""Add a UMLClass to the UML object.
+    def register(self, full_qualname: str) -> UMLObjectRef:
+        r"""Register a UMLObject Reference to the UMLSpace. This is used to register a 
+        not added UMLObject to the UMLSpace. 
 
         Args:
-            item (UMLItem): 
-                The UMLItem object to add.
+            full_qualname (str): 
+                The full qualified name of the UMLObject. 
+                
+        Returns:
+            UMLObjectRef:
+                The reference to the registered UMLObject. 
+        """
+        pass
+
+    def add_item(self, item: UMLObject) -> UMLObjectRef:
+        r"""Add a UMLObject to the UMLSpace.
+
+        Args:
+            item (UMLObject): 
+                The UMLObject to add. 
         
         Returns:
-            None
+            UMLObjectRef:
+                The reference to the added UMLObject. 
         
         Raises:
             TypeError:
@@ -330,92 +426,22 @@ class UMLSpace(Protocol):
         """
         pass
 
-    def add_relation(self, relation: UMLRelation) -> None:
-        r"""Add a relation to the UML object.
+    def gen_relations(self) -> list[UMLRelation]:
+        r"""Generate the relations for all the UMLItems in the UMLSpace.
 
-        Args:
-            relation (UMLRelation): 
-                The UMLRelation object to add.
-        
         Returns:
-            None
-
-        Raises:
-            TypeError:
-                If the input is not a UMLRelation object.
+            list[UMLRelation]:
+                The list of relations.
         """
         pass
 
-    def to_puml(self) -> str:
-        r"""Generate the PlantUML code.
+    def gen_docstring(self) -> list[UMLDocstring]:
+        r"""Generate the docstrings for all the UMLObject in the UMLSpace. 
+        This should be called before generating the UML Relations, otherwise, the docstrings 
+        will be generated without relations to the UMLObject.
 
         Returns:
-            str:
-                The PlantUML code.
-        """
-        pass
-
-
-@runtime_checkable
-class UMLPackage(Protocol):
-    r"""UMLPackage protocol represents a UML package.
-
-    Attributes:
-        space (UMLSpace): 
-            The UML space of the package.
-        name (str): 
-            The name of the package.
-        domain (str): 
-            The domain of the package.
-        items (list[UMLClass | UMLMethod | UMLParams]): 
-            The list of items in the package.
-        packages (list[UMLPackage]): 
-            The list of sub-packages in the package.
-    """
-    space: UMLSpace
-    name: str
-    domain: str
-    items: list[T]
-    packages: list['UMLPackage']
-
-
-@runtime_checkable
-class UMLExtractor(Protocol):
-    r"""UMLExtractor protocol represents an object that can extract UML items from other objects.
-    
-    Attributes:
-        max_depth (int): 
-            The maximum depth to traverse the object graph.
-        space (UMLSpace): 
-            The UML space to store the extracted items.
-        include_extern (bool):
-            A flag to indicate whether to include external packages in the UML diagram.
-    """
-
-    max_depth: int
-    space: UMLSpace
-    include_extern: bool
-
-    def refresh(self) -> None:
-        r"""Refresh the max_depth attribute."""
-        pass
-
-    def extract(self, obj: object, domain: str, fqn: str = '', next_layer: bool = True) -> T:
-        r"""Extract a UML space item from the given object.
-
-        Args:
-            obj (object): 
-                The object to extract.
-            domain (str):
-                The domain that will restrict the extraction. if the object does not belong 
-                to the domain, it will be ignored.
-            fqn (str): 
-                The fully qualified name of the object. Default is ''.
-            next_layer (bool):
-                A flag to indicate whether to extract the next layer or not. Default is True.
-            
-        Returns:
-            UMLClass | UMLMethod | UMLParams:
-                The extracted UML item.
+            list[UMLDocstring]:
+                The list of docstrings.
         """
         pass
