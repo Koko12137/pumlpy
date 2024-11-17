@@ -1,88 +1,87 @@
-@startuml       pumlpy
+@startuml	pumlpy
 Class pumlpy.impl.base.BaseUMLClass {
-        + bool: is_interface
-        + list[UMLClass, UMLObjectRef]: ancestors
-        + dict[UMLMemberMode, list[UMLMember]]: attributes
-        + dict[UMLMemberMode, list[UMLMember]]: methods
-        + list[UMLMember]: public_attributes
-        + list[UMLMember]: protected_attributes
-        + list[UMLMember]: private_attributes
-        + list[UMLMember]: public_methods
-        + list[UMLMember]: protected_methods
-        + list[UMLMember]: private_methods
-        + to_puml: str
+	+ bool: is_interface
+	+ list[UMLClass, UMLObjectRef]: ancestors
+	+ dict[UMLMemberMode, list[UMLMember]]: attributes
+	+ dict[UMLMemberMode, list[UMLMember]]: methods
+	+ list[UMLMember]: public_attributes
+	+ list[UMLMember]: protected_attributes
+	+ list[UMLMember]: private_attributes
+	+ list[UMLMember]: public_methods
+	+ list[UMLMember]: protected_methods
+	+ list[UMLMember]: private_methods
+	+ to_puml(): str
 }
 Class pumlpy.impl.base.BaseUMLDocstring {
-        + str: alias
-        + UMLObject: source
-        + str: docstring
-        + to_puml: str
+	+ str: alias
+	+ UMLObject: source
+	+ str: docstring
+	+ to_puml(): str
 }
 Class pumlpy.impl.base.BaseUMLGeneric {
-        + bool: is_builtin
-        + list[UMLParam]: args
-        + to_puml: str
+	+ bool: is_builtin
+	+ list[UMLParam]: args
+	+ to_puml(): str
 }
 Class pumlpy.impl.base.BaseUMLItem {
-        + UMLTemplate: template
-        + to_puml: str
+	+ UMLTemplate: template
+	+ to_puml(): str
 }
 Class pumlpy.impl.base.BaseUMLMember {
-        + UMLMemberMode: mode
-        + to_puml: str
-        - __infer_mode: UMLMemberMode
+	+ UMLMemberMode: mode
+	+ to_puml(): str
+	- __infer_mode(): UMLMemberMode
 }
 Class pumlpy.impl.base.BaseUMLMethod {
-        + bool: is_bounded
-        + list[UMLParam]: params
-        + UMLParam: returns
-        + to_puml: str
+	+ bool: is_bounded
+	+ list[UMLParam]: params
+	+ UMLParam: returns
+	+ to_puml(): str
 }
 Class pumlpy.impl.base.BaseUMLObjWrapper {
-        + Union[UMLObject, UMLObjectRef]: hint
-        + to_puml: str
+	+ Union[UMLObject, UMLObjectRef]: hint
+	+ to_puml(): str
 }
 Class pumlpy.impl.base.BaseUMLObject {
-        + object: raw
-        + UMLType: rtype
-        + str: domain
-        + str: full_qualname
-        + bool: empty
-        + str: docstring
-        + dict[UMLType, UMLTemplate]: template_maps
-        + to_puml: str
+	+ object: raw
+	+ UMLType: rtype
+	+ str: domain
+	+ str: full_qualname
+	+ bool: empty
+	+ str: docstring
+	+ dict[UMLType, UMLTemplate]: template_maps
+	+ to_puml(): str
 }
 Class pumlpy.impl.base.BaseUMLObjectRef {
-        + str: full_qualname
-        + UMLSpace: space
-        + get: UMLObject
+	+ str: full_qualname
+	+ UMLSpace: space
+	+ get(): UMLObject
 }
 Class pumlpy.impl.base.BaseUMLParam {
-        + str: full_qualname
-        + to_puml: str
+	+ str: full_qualname
+	+ to_puml(): str
 }
 Class pumlpy.impl.base.BaseUMLRelation {
-        + str: source
-        + str: target
-        + UMLRelationType: relation
-        + to_puml: str
+	+ str: source
+	+ str: target
+	+ UMLRelationType: relation
+	+ to_puml(): str
 }
 Class pumlpy.impl.base.BaseUMLSpace {
-        + str: name
-        + str: limit_fqn
-        + bool: short_names
-        + bool: include_docs
-        + dict[str, UMLObjectRef]: refs
-        + dict[str, UMLObject]: objs
-        + add_item(item: UMLObject): UMLObjectRef
-        + gen_docstring: list[UMLDocstring]
-        + gen_relations: list[UMLRelation]
-        + register(full_qualname: str): UMLObjectRef
-        + to_puml: str
-        - __gen_class_rels(obj: UMLClass): list[UMLRelation]
-        - __gen_generic_rels(obj: UMLGeneric, source: str): list[UMLRelation]
-        - __gen_method_rels(obj: UMLMethod, source: str): list[UMLRelation]
-        - __gen_wrapped_rels(obj: Union[UMLParam, UMLMember], source: str): list[UMLRelation]
+	+ str: name
+	+ str: limit_fqn
+	+ bool: include_docs
+	+ dict[str, UMLObjectRef]: refs
+	+ dict[str, UMLObject]: objs
+	+ add_item(item: UMLObject): UMLObjectRef
+	+ gen_docstring(): list[UMLDocstring]
+	+ gen_relations(): list[UMLRelation]
+	+ register(full_qualname: str): UMLObjectRef
+	+ to_puml(): str
+	- __gen_class_rels(obj: UMLClass): list[UMLRelation]
+	- __gen_generic_rels(obj: UMLGeneric, source: str): list[UMLRelation]
+	- __gen_method_rels(obj: UMLMethod, source: str): list[UMLRelation]
+	- __gen_wrapped_rels(obj: Union[UMLParam, UMLMember], source: str): list[UMLRelation]
 }
 Class pumlpy.impl.base.UMLMemberMode {
 
@@ -97,110 +96,109 @@ Class pumlpy.impl.base.UMLTemplate {
 
 }
 Interface pumlpy.interface.UMLClass {
-        + bool: is_interface
-        + list[Union[UMLClass, UMLObjectRef]]: ancestors
-        + dict[UMLMemberMode, list[UMLMember]]: attributes
-        + dict[UMLMemberMode, list[UMLMember]]: methods
-        + list[UMLMember]: public_attributes
-        + list[UMLMember]: protected_attributes
-        + list[UMLMember]: private_attributes
-        + list[UMLMember]: public_methods
-        + list[UMLMember]: protected_methods
-        + list[UMLMember]: private_methods
-        + to_puml: str
+	+ bool: is_interface
+	+ list[Union[UMLClass, UMLObjectRef]]: ancestors
+	+ dict[UMLMemberMode, list[UMLMember]]: attributes
+	+ dict[UMLMemberMode, list[UMLMember]]: methods
+	+ list[UMLMember]: public_attributes
+	+ list[UMLMember]: protected_attributes
+	+ list[UMLMember]: private_attributes
+	+ list[UMLMember]: public_methods
+	+ list[UMLMember]: protected_methods
+	+ list[UMLMember]: private_methods
+	+ to_puml(): str
 }
 Interface pumlpy.interface.UMLDocstring {
-        + str: alias
-        + UMLObject: source
-        + str: docstring
-        + to_puml: str
+	+ str: alias
+	+ UMLObject: source
+	+ str: docstring
+	+ to_puml(): str
 }
 Interface pumlpy.interface.UMLGeneric {
-        + bool: is_builtin
-        + list[UMLParam]: args
-        + to_puml: str
+	+ bool: is_builtin
+	+ list[UMLParam]: args
+	+ to_puml(): str
 }
 Interface pumlpy.interface.UMLItem {
-        + UMLTemplate: template
-        + to_puml: str
+	+ UMLTemplate: template
+	+ to_puml(): str
 }
 Interface pumlpy.interface.UMLMember {
-        + UMLMemberMode: mode
-        + to_puml: str
+	+ UMLMemberMode: mode
+	+ to_puml(): str
 }
 Class pumlpy.interface.UMLMemberMode {
-        + str: PUBLIC
-        + str: PROTECTED
-        + str: PRIVATE
+	+ str: PUBLIC
+	+ str: PROTECTED
+	+ str: PRIVATE
 
 }
 Interface pumlpy.interface.UMLMethod {
-        + bool: is_bounded
-        + list[UMLParam]: params
-        + UMLParam: returns
-        + to_puml: str
+	+ bool: is_bounded
+	+ list[UMLParam]: params
+	+ UMLParam: returns
+	+ to_puml(): str
 }
 Interface pumlpy.interface.UMLObjWrapper {
-        + Union[UMLObject, UMLObjectRef]: hint
-        + to_puml: str
+	+ Union[UMLObject, UMLObjectRef]: hint
+	+ to_puml(): str
 }
 Interface pumlpy.interface.UMLObject {
-        + object: raw
-        + UMLType: rtype
-        + str: domain
-        + str: full_qualname
-        + bool: empty
-        + str: docstring
-        + to_puml: str
+	+ object: raw
+	+ UMLType: rtype
+	+ str: domain
+	+ str: full_qualname
+	+ bool: empty
+	+ str: docstring
+	+ to_puml(): str
 }
 Interface pumlpy.interface.UMLObjectRef {
-        + str: full_qualname
-        + UMLSpace: space
-        + get: UMLObject
+	+ str: full_qualname
+	+ UMLSpace: space
+	+ get(): UMLObject
 }
 Interface pumlpy.interface.UMLParam {
-        + str: full_qualname
-        + to_puml: str
+	+ str: full_qualname
+	+ to_puml(): str
 }
 Interface pumlpy.interface.UMLRelation {
-        + str: source
-        + str: target
-        + UMLRelationType: relation
-        + to_puml: str
+	+ str: source
+	+ str: target
+	+ UMLRelationType: relation
+	+ to_puml(): str
 }
 Class pumlpy.interface.UMLRelationType {
-        + str: ASSOCIATION
-        + str: AGGREGATION
-        + str: COMPOSITION
-        + str: INHERITANCE
-        + str: IMPLEMENTATION
-        + str: DEPENDENCY
-        + str: LINK
+	+ str: ASSOCIATION
+	+ str: AGGREGATION
+	+ str: COMPOSITION
+	+ str: INHERITANCE
+	+ str: IMPLEMENTATION
+	+ str: DEPENDENCY
+	+ str: LINK
 
 }
 Interface pumlpy.interface.UMLSpace {
-        + UMLTemplate: template
-        + str: name
-        + str: limit_fqn
-        + bool: short_names
-        + bool: include_docs
-        + dict[str, UMLObjectRef]: refs
-        + dict[str, UMLObject]: objs
-        + add_item(item: UMLObject): UMLObjectRef
-        + gen_docstring: list[UMLDocstring]
-        + gen_relations: list[UMLRelation]
-        + register(full_qualname: str): UMLObjectRef
-        + to_puml: str
+	+ UMLTemplate: template
+	+ str: name
+	+ str: limit_fqn
+	+ bool: include_docs
+	+ dict[str, UMLObjectRef]: refs
+	+ dict[str, UMLObject]: objs
+	+ add_item(item: UMLObject): UMLObjectRef
+	+ gen_docstring(): list[UMLDocstring]
+	+ gen_relations(): list[UMLRelation]
+	+ register(full_qualname: str): UMLObjectRef
+	+ to_puml(): str
 }
 Class pumlpy.interface.UMLTemplate {
-        + str: CLASS
-        + str: METHOD
-        + str: GENERIC
-        + str: PARAM
-        + str: MEMBER
-        + str: DOCS
-        + str: RELATION
-        + str: SPACE
+	+ str: CLASS
+	+ str: METHOD
+	+ str: GENERIC
+	+ str: PARAM
+	+ str: MEMBER
+	+ str: DOCS
+	+ str: RELATION
+	+ str: SPACE
 
 }
 Class pumlpy.rtypes.UMLType {
@@ -208,67 +206,73 @@ Class pumlpy.rtypes.UMLType {
 
 }
 Class pumlpy.rtypes.check_raw_type << Method >> {
-        any: raw
-        UMLType: return
+	any: raw
+	UMLType: return
 }
 Class pumlpy.rtypes.get_full_qualname << Method >> {
-        any: raw
-        UMLType: rtype
-        str: return
+	any: raw
+	UMLType: rtype
+	str: return
 }
 Class pumlpy.utils.check_builtins << Method >> {
-        any: obj
-        bool: return
+	any: obj
+	bool: return
 }
 Class pumlpy.factory.BaseUMLFactory {
-        + dict[str, Extractor]: valid_extractors
-        + dict[str, UMLSpace]: valid_spaces
-        + create_extractor(domain: str, limit_fqn: str, max_depth: int, include_extern: bool, extractor: str): Extractor
-        + create_space(name: str, limit_fqn: str, short_name: bool, include_docs: bool, space: str): UMLSpace
+	+ dict[str, Extractor]: valid_extractors
+	+ dict[str, UMLSpace]: valid_spaces
+	+ create_extractor(domain: str, limit_fqn: str, max_depth: int, include_extern: bool, extractor: str): Extractor
+	+ create_space(name: str, limit_fqn: str, include_docs: bool, space: str): UMLSpace
 }
 Class pumlpy.extractor.BaseExtractor {
-        + str: domain
-        + str: limit_fqn
-        + int: max_depth
-        + bool: include_extern
-        + UMLClass: uml_class
-        + UMLMethod: uml_method
-        + UMLGeneric: uml_generic
-        + UMLParam: uml_param
-        + UMLMember: uml_member
-        + extract(raw: any, rtype: UMLType, space: UMLSpace, next_layer: bool): Union[UMLObject, UMLObjectRef, list[UMLObject]]
-        + inspect_class(raw: object, rtype: UMLType, space: UMLSpace, next_layer: bool): Union[UMLClass, UMLObjectRef]
-        + inspect_generic(raw: any, rtype: UMLType, space: UMLSpace, next_layer: bool): UMLGeneric
-        + inspect_method(raw: object, rtype: UMLType, space: UMLSpace, next_layer: bool): Union[UMLMethod, UMLObjectRef]
-        + inspect_package(package: module, space: UMLSpace): list[UMLObjectRef]
-        - __extract_class(raw: object, full_qualname: str, space: UMLSpace, empty: bool): UMLClass
-        - __extract_class_attrs(raw: object, full_qualname: str, space: UMLSpace): tuple[list[UMLMember]]
-        - __extract_class_bases(raw: object, space: UMLSpace): list[UMLClass, UMLObjectRef]
-        - __extract_class_methods(raw: object, full_qualname: str, space: UMLSpace): tuple[list[UMLMember]]
-        - __extract_generic(raw: object, rtype: UMLType, full_qualname: str, space: UMLSpace, empty: bool): UMLGeneric
-        - __extract_method(raw: object, full_qualname: str, space: UMLSpace, empty: bool): UMLMethod
+	+ str: domain
+	+ str: limit_fqn
+	+ int: max_depth
+	+ bool: include_extern
+	+ UMLClass: uml_class
+	+ UMLMethod: uml_method
+	+ UMLGeneric: uml_generic
+	+ UMLParam: uml_param
+	+ UMLMember: uml_member
+	+ extract(raw: any, rtype: UMLType, space: UMLSpace, next_layer: bool): Union[UMLObject, UMLObjectRef, list[UMLObject]]
+	+ inspect_class(raw: object, rtype: UMLType, space: UMLSpace, next_layer: bool): Union[UMLClass, UMLObjectRef]
+	+ inspect_generic(raw: any, rtype: UMLType, space: UMLSpace, next_layer: bool): UMLGeneric
+	+ inspect_method(raw: object, rtype: UMLType, space: UMLSpace, next_layer: bool): Union[UMLMethod, UMLObjectRef]
+	+ inspect_package(package: module, space: UMLSpace): list[UMLObjectRef]
+	- __extract_class(raw: object, full_qualname: str, space: UMLSpace, empty: bool): UMLClass
+	- __extract_class_attrs(raw: object, full_qualname: str, space: UMLSpace): tuple[list[UMLMember]]
+	- __extract_class_bases(raw: object, space: UMLSpace): list[UMLClass, UMLObjectRef]
+	- __extract_class_methods(raw: object, full_qualname: str, space: UMLSpace): tuple[list[UMLMember]]
+	- __extract_generic(raw: object, rtype: UMLType, full_qualname: str, space: UMLSpace, empty: bool): UMLGeneric
+	- __extract_method(raw: object, full_qualname: str, space: UMLSpace, empty: bool): UMLMethod
 }
 Interface pumlpy.extractor.Extractor {
-        + str: domain
-        + str: limit_fqn
-        + int: max_depth
-        + bool: include_extern
-        + UMLClass: uml_class
-        + UMLMethod: uml_method
-        + UMLGeneric: uml_generic
-        + UMLParam: uml_param
-        + UMLMember: uml_member
-        + UMLObjectRef: uml_ref
-        + extract(raw: any, rtype: UMLType, space: UMLSpace, next_layer: bool): Union[UMLObject, UMLObjectRef, list[UMLObject]]
-        + inspect_package(package: module, space: UMLSpace): list[UMLObject]
+	+ str: domain
+	+ str: limit_fqn
+	+ int: max_depth
+	+ bool: include_extern
+	+ UMLClass: uml_class
+	+ UMLMethod: uml_method
+	+ UMLGeneric: uml_generic
+	+ UMLParam: uml_param
+	+ UMLMember: uml_member
+	+ UMLObjectRef: uml_ref
+	+ extract(raw: any, rtype: UMLType, space: UMLSpace, next_layer: bool): Union[UMLObject, UMLObjectRef, list[UMLObject]]
+	+ inspect_package(package: module, space: UMLSpace): list[UMLObject]
 }
 Class pumlpy.api.plantuml << Method >> {
-        str: path
-        str: limit_fqn
-        bool: include_extern
-        bool: include_docs
-        int: max_depth
-        UMLSpace: return
+	str: path
+	str: limit_fqn
+	bool: include_extern
+	bool: include_docs
+	int: max_depth
+	UMLSpace: return
+}
+Class pumlpy.api.space_to_file << Method >> {
+	UMLSpace: space
+	str: output
+	bool: replace
+	None: return
 }
 pumlpy.impl.base.BaseUMLClass --|> pumlpy.impl.base.BaseUMLObject
 pumlpy.impl.base.BaseUMLClass ..|> pumlpy.interface.UMLClass

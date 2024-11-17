@@ -1,3 +1,15 @@
+'''
+File: base.py
+Project: impl
+File Created: Sunday, 17th November 2024 1:31:07 pm
+Author: koko (koko231125@gmail.com)
+License: GPL-3.0
+-----
+Last Modified: Sunday, 17th November 2024 3:19:35 pm
+Modified By: koko (koko231125@gmail.com>)
+'''
+
+
 from enum import Enum
 from abc import ABC, abstractmethod
 from typing import Protocol
@@ -710,7 +722,7 @@ class BaseUMLParam(BaseUMLObjWrapper, ifc.UMLParam):
             if signatures:
                 hint = f"{name}({', '.join(signatures)})" 
             else:
-                hint = f"{name}"
+                hint = f"{name}()"
 
             # In case of UMLMethod wrapped in UMLParam, `   func_name(a: int, b: float): ret`
             # Overwrite the name with the return type

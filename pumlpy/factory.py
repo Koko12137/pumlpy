@@ -1,3 +1,15 @@
+'''
+File: factory.py
+Project: pumlpy
+File Created: Sunday, 17th November 2024 1:31:07 pm
+Author: koko (koko231125@gmail.com)
+License: GPL-3.0
+-----
+Last Modified: Sunday, 17th November 2024 3:20:10 pm
+Modified By: koko (koko231125@gmail.com>)
+'''
+
+
 import pumlpy.interface as ifc
 import pumlpy.impl.base as base
 import pumlpy.extractor as ext

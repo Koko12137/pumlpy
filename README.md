@@ -15,10 +15,16 @@ PumlPY is a Python library for generating PlantUML diagrams from code.
 - OpenJDK 18+
 - VSCode with Python extension and PlantUML extension
 
+If you don't want to install visilize tools in your device, you can use [PlantUML online service](https://www.plantuml.com/plantuml/uml/SyfFKj2rKt3CoKnELR1Io4ZDoSa70000).
+
+Then you just need:
+
+- Python 3.11+
+
 ### 2.2 Installation
 
 ```bash
-git clone https://github.com/Koko12137/pumlpy
+git clone https://github.com/Koko12137/pumlpy.git
 cd /your/path/pumlpy
 pip install -e ./
 ```
@@ -75,7 +81,11 @@ Options:
 
 ## 3. Examples
 
+Inspect pumlpy/pumlpy
+
 ```bash
+cd /your/path/to/pumlpy     
+
 pumlpy ./pumlpy --output ./examples/pumlpy.puml
 ```
 

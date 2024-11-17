@@ -1,3 +1,15 @@
+'''
+File: api.py
+Project: pumlpy
+File Created: Sunday, 17th November 2024 1:31:07 pm
+Author: koko (koko231125@gmail.com)
+License: GPL-3.0
+-----
+Last Modified: Sunday, 17th November 2024 3:19:15 pm
+Modified By: koko (koko231125@gmail.com>)
+'''
+
+
 import os
 from importlib import import_module
 from types import ModuleType
@@ -33,6 +45,11 @@ def plantuml(
         interface.UMLSpace: 
             The UML space instance.
     """
+    # Check if the path is startint with `./`
+    if path.startswith('./'):
+        # Remove the `./` from the path
+        path = path[2:]
+
     # Check the path is a package or a folder
     if path.endswith('.py'):
         # Remove the .py extension and replace system separators with dots
@@ -55,3 +72,26 @@ def plantuml(
     extractor.inspect_package(package, space)
     
     return space
+
+
+def space_to_file(space: ifc.UMLSpace, output: str, replace: bool = False) -> None:
+    """Call the to_puml method of the UML space and write the output to a file. 
+    
+    Args:
+        space (UMLSpace): 
+            The UML space instance. 
+        output (str): 
+            The path to the output file. 
+        replace (bool, optional):
+            Whether to replace the file if it already exists. Defaults to False. 
+    
+    Raises:
+        FileExistsError: 
+            If the file already exists and replace is False. 
+    """
+    # Check if the file already exists
+    if os.path.exists(output) and not replace:
+        raise FileExistsError(f'The file {output} already exists.')
+
+    with open(output, 'w') as f:
+        f.write(space.to_puml())

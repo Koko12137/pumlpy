@@ -1,3 +1,15 @@
+'''
+File: utils.py
+Project: pumlpy
+File Created: Sunday, 17th November 2024 1:31:07 pm
+Author: koko (koko231125@gmail.com)
+License: GPL-3.0
+-----
+Last Modified: Sunday, 17th November 2024 3:19:47 pm
+Modified By: koko (koko231125@gmail.com>)
+'''
+
+
 import types
 import inspect
 

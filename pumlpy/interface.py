@@ -1,3 +1,15 @@
+'''
+File: interface.py
+Project: pumlpy
+File Created: Sunday, 17th November 2024 1:31:07 pm
+Author: koko (koko231125@gmail.com)
+License: GPL-3.0
+-----
+Last Modified: Sunday, 17th November 2024 3:20:05 pm
+Modified By: koko (koko231125@gmail.com>)
+'''
+
+
 from enum import Enum
 from typing import Protocol, runtime_checkable, TypeVar, Generic, Union
 
