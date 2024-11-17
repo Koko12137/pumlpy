@@ -1,0 +1,27 @@
+[project]
+name = "pumlpy"
+version = "0.0.1"
+authors = [
+  { name="koko", email="koko231125@gmail.com" },
+]
+description = "Generate UML code from source codes"
+readme = "README.md"
+license = { text = "GNU General Public License v3" }
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+keywords = ["pumlpy", "plantuml", "python", "uml"]
+
+[project.scripts]
+pumlpy = "cli:plantuml"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+Homepage = "https://github.com/Koko12137/pumlpy"
+Issues = "https://github.com/Koko12137/pumlpy/issues"

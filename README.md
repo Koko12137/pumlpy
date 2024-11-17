@@ -23,10 +23,18 @@ Then you just need:
 
 ### 2.2 Installation
 
+Install from github
+
 ```bash
 git clone https://github.com/Koko12137/pumlpy.git
 cd /your/path/pumlpy
 pip install -e ./
+```
+
+Install from testpypi
+
+```bash
+pip install -i https://test.pypi.org/simple/ pumlpy==0.0.1
 ```
 
 ### 2.3 Usage
